@@ -1,5 +1,4 @@
 import logging
-from copy import deepcopy
 from random import random
 
 
@@ -61,6 +60,7 @@ class Grid:
 class Cell:
     alive = True
     dead = False
+
     def __init__(self, state, coords, grid):
         self.state = state
         self.coords = coords
