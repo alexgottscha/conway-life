@@ -1,4 +1,5 @@
 import logging
+from copy import deepcopy
 from random import random
 
 
@@ -13,7 +14,23 @@ class Grid:
             raise ValueError('populate parameter only supports "random"')
 
     def update(self):
-        pass
+        for row in self.grid:
+            for cell in row:
+                nn = cell.count_neighbors()
+                if cell.state is Cell.alive:
+                    if nn < 2 or nn > 3:
+                        cell.next_state = Cell.dead
+                    else:
+                        cell.next_state = Cell.alive
+                else:
+                    if nn == 3:
+                        cell.next_state = Cell.alive
+                    else:
+                        cell.next_state = Cell.dead
+        for row in self.grid:
+            for cell in row:
+                cell.state = cell.next_state
+                cell.next_state = None
 
     def get_cell(self, coords):
         logging.debug(f'asked for cell at {coords}')
@@ -38,33 +55,30 @@ class Grid:
                     cell._debug_print()
                 else:
                     cell.print()
-            print('|')
+            print()
 
 
 class Cell:
+    alive = True
+    dead = False
     def __init__(self, state, coords, grid):
-        self.alive = state
+        self.state = state
         self.coords = coords
         self.grid = grid
+        self.next_state = None
 
     def __bool__(self):
-        return self.alive
+        return self.state
 
     def _debug_print(self):
         print((f"| y:{self.coords['y']} x:{self.coords['x']} "
-               f"a:{self.alive} n:{self.count_neighbors()}"), end='')
+               f"a:{self.state} n:{self.count_neighbors()}"), end='')
 
     def print(self):
-        if self:
+        if self.state is Cell.alive:
             print('O', end='')
         else:
             print(' ', end='')
-
-    def kill(self):
-        self.alive = False
-
-    def spawn(self):
-        self.alive = True
 
     def count_neighbors(self):
         top = self.coords['y'] - 1
@@ -85,6 +99,6 @@ class Cell:
         count = 0
         for loc in neighbor_coords:
             if self.grid.get_cell(loc) is not None and \
-                    self.grid.get_cell(loc).alive:
+                    self.grid.get_cell(loc).state is Cell.alive:
                 count += 1
         return count
