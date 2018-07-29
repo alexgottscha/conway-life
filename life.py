@@ -14,6 +14,14 @@ class Grid:
     def update(self):
         pass
 
+    def get_cell(self, coords):
+        if not self.torus:
+            if coords['x'] < 0 or coords['x'] > (self.width + 1) or \
+                    coords['y'] < 0 or coords['y'] > (self.height + 1):
+                return None
+
+        return self.grid[coords['y'] % self.height][coords['x'] % self.width]
+
     def fill_grid_random(self, fill=0.25):
         return [[Cell(True, {'x': x, 'y': y}, self) if random() < fill else
                  Cell(False, {'x': x, 'y': y}, self)
@@ -55,25 +63,23 @@ class Cell:
         self.alive = True
 
     def count_neighbors(self):
-        if not self.alive:
-            return None
-        if self.grid.torus:
-            return self.count_neighbors_wrap()
-        else:
-            return self.count_neighbors_stop()
-
-    def count_neighbors_wrap(self):
+        top = self.coords['y'] - 1
+        middle_y = self.coords['y']
+        bottom = self.coords['y'] + 1
+        left = self.coords['x'] - 1
+        middle_x = self.coords['x']
+        right = self.coords['x'] + 1
+        neighbor_coords = [{'y': top, 'x': left},
+                           {'y': top, 'x': middle_x},
+                           {'y': top, 'x': right},
+                           {'y': middle_y, 'x': left},
+                           {'y': middle_y, 'x': right},
+                           {'y': bottom, 'x': left},
+                           {'y': bottom, 'x': middle_x},
+                           {'y': bottom, 'x': right}]
         count = 0
-        for y in range((self.coords['y'] - 1) % self.grid.height,
-                       (self.coords['y'] + 1) % self.grid.height):
-            for x in range((self.coords['x'] - 1) % self.grid.width,
-                           (self.coords['x'] + 1) % self.grid.width):
-                # skip the center cell as it's self
-                if y == 0 and x == 0:
-                    continue
-                if self.grid.grid[y][x]:
-                    count += 1
+        for loc in neighbor_coords:
+            if self.grid.get_cell(loc) is not None and \
+                    self.grid.get_cell(loc).alive:
+                count += 1
         return count
-
-    def count_neighbors_stop(self):
-        pass
