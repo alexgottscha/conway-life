@@ -1,6 +1,7 @@
 from random import random
 
 
+
 class Grid:
     def __init__(self, width, height, fill=0.25, torus=False):
         self.torus = torus
@@ -48,4 +49,12 @@ class Cell:
         self.state = True
 
     def count_neighbors(self):
-        pass
+        count = 0
+        for y in range(self.coords['y'] - 1, self.coords['y'] + 1):
+            for x in range(self.coords['x'] - 1, self.coords['x'] + 1):
+                if y == 0 and x == 0:
+                    continue
+                if self.grid[y][x]:
+                     count += 1
+         return count
+
