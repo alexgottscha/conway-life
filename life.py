@@ -12,13 +12,13 @@ class Grid:
     def update(self):
         pass
 
-    def draw(self, debug=False):
+    def print(self, debug=False):
         for row in self.grid:
             for cell in row:
                 if debug:
-                    cell._debug_draw()
+                    cell._debug_print()
                 else:
-                    cell.draw()
+                    cell.print()
             print('|')
 
 
@@ -31,10 +31,11 @@ class Cell:
     def __bool__(self):
         return self.state
 
-    def _debug_draw(self):
-        print(f"|{self.coords['y']},{self.coords['x']}: {self.state}", end='')
+    def _debug_print(self):
+        print((f"| y:{self.coords['y']} x:{self.coords['x']} "
+               f"s:{self.state} n:{self.count_neighbors()}"), end='')
 
-    def draw(self):
+    def print(self):
         if self:
             print('O', end='')
         else:
