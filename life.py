@@ -13,12 +13,9 @@ class Grid:
         pass
 
     def draw(self):
-        for y, row in enumerate(self.grid):
-            for x, cell in enumerate(row):
-                if cell:
-                    print('O', end='')
-                else:
-                    print(' ', end='')
+        for row in self.grid:
+            for cell in row:
+                cell.draw()
             print()
 
 
@@ -30,6 +27,12 @@ class Cell:
 
     def __bool__(self):
         return self.state
+
+    def draw(self):
+        if self:
+            print('O', end='')
+        else:
+            print(' ', end='')
 
     def kill(self):
         self.state = False
