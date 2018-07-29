@@ -12,11 +12,14 @@ class Grid:
     def update(self):
         pass
 
-    def draw(self):
+    def draw(self, debug=False):
         for row in self.grid:
             for cell in row:
-                cell.draw()
-            print()
+                if debug:
+                    cell._debug_draw()
+                else:
+                    cell.draw()
+            print('|')
 
 
 class Cell:
@@ -27,6 +30,9 @@ class Cell:
 
     def __bool__(self):
         return self.state
+
+    def _debug_draw(self):
+        print(f"|{self.coords['y']},{self.coords['x']}: {self.state}", end='')
 
     def draw(self):
         if self:
