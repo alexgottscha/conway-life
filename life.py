@@ -1,3 +1,4 @@
+import logging
 from random import random
 
 
@@ -15,14 +16,17 @@ class Grid:
         pass
 
     def get_cell(self, coords):
+        logging.debug(f'asked for cell at {coords}')
         if not self.torus:
             if coords['x'] < 0 or coords['x'] > (self.width + 1) or \
                     coords['y'] < 0 or coords['y'] > (self.height + 1):
+                logging.debug('coords exceeded boundaries on non-torus grid')
                 return None
 
         return self.grid[coords['y'] % self.height][coords['x'] % self.width]
 
     def fill_grid_random(self, fill=0.25):
+        logging.debug('filling grid randomly')
         return [[Cell(True, {'x': x, 'y': y}, self) if random() < fill else
                  Cell(False, {'x': x, 'y': y}, self)
                  for x in range(self.width)] for y in range(self.height)]
@@ -48,7 +52,7 @@ class Cell:
 
     def _debug_print(self):
         print((f"| y:{self.coords['y']} x:{self.coords['x']} "
-               f"s:{self.alive} n:{self.count_neighbors()}"), end='')
+               f"a:{self.alive} n:{self.count_neighbors()}"), end='')
 
     def print(self):
         if self:
@@ -77,6 +81,7 @@ class Cell:
                            {'y': bottom, 'x': left},
                            {'y': bottom, 'x': middle_x},
                            {'y': bottom, 'x': right}]
+        logging.debug(f'neighborhood: {neighbor_coords}')
         count = 0
         for loc in neighbor_coords:
             if self.grid.get_cell(loc) is not None and \
