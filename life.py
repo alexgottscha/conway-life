@@ -4,8 +4,7 @@ from random import random
 
 
 class Grid:
-    def __init__(self, columns, rows, populate=('random', 0.25), torus=True,
-                 graphics=False, wsize={'x': 1280, 'y': 800}):
+    def __init__(self, columns, rows, populate=('random', 0.25), torus=True):
         self.torus = torus
         self.columns = columns
         self.rows = rows
@@ -16,19 +15,20 @@ class Grid:
 
     def fill_grid_random(self, fill=0.25):
         logging.debug('filling grid randomly')
-        return [[Cell(True, {'x': x, 'y': y}, self) if random() < fill else
-                 Cell(False, {'x': x, 'y': y}, self)
-                 for x in range(self.columns)] for y in range(self.rows)]
+        return [[Cell(Cell.alive, {'col': col, 'row': row}, self)
+                 if random() < fill else
+                 Cell(Cell.dead, {'col': col, 'row': row}, self)
+                 for col in range(self.columns)] for row in range(self.rows)]
 
     def get_cell(self, coords):
         logging.debug(f'asked for cell at {coords}')
         if not self.torus:
-            if coords['x'] < 0 or coords['x'] > (self.columns + 1) or \
-                    coords['y'] < 0 or coords['y'] > (self.rows + 1):
+            if coords['col'] < 0 or coords['col'] > (self.columns + 1) or \
+                    coords['row'] < 0 or coords['row'] > (self.rows + 1):
                 logging.debug('coords exceeded boundaries on non-torus grid')
                 return None
 
-        return self.grid[coords['y'] % self.rows][coords['x'] % self.columns]
+        return self.grid[coords['row'] % self.rows][coords['col'] % self.columns]
 
     def print(self, debug=False):
         for row in self.grid:
@@ -70,24 +70,24 @@ class Cell:
         self.next_state = None
 
     def _debug_print(self):
-        print((f"| y:{self.coords['y']} x:{self.coords['x']} "
+        print((f"| y:{self.coords['row']} x:{self.coords['col']} "
                f"a:{self.state} n:{self.count_neighbors()}"), end='')
 
     def count_neighbors(self):
-        top = self.coords['y'] - 1
-        middle_y = self.coords['y']
-        bottom = self.coords['y'] + 1
-        left = self.coords['x'] - 1
-        middle_x = self.coords['x']
-        right = self.coords['x'] + 1
-        neighbor_coords = [{'y': top, 'x': left},
-                           {'y': top, 'x': middle_x},
-                           {'y': top, 'x': right},
-                           {'y': middle_y, 'x': left},
-                           {'y': middle_y, 'x': right},
-                           {'y': bottom, 'x': left},
-                           {'y': bottom, 'x': middle_x},
-                           {'y': bottom, 'x': right}]
+        top = self.coords['row'] - 1
+        middle_y = self.coords['row']
+        bottom = self.coords['row'] + 1
+        left = self.coords['col'] - 1
+        middle_x = self.coords['col']
+        right = self.coords['col'] + 1
+        neighbor_coords = [{'row': top, 'col': left},
+                           {'row': top, 'col': middle_x},
+                           {'row': top, 'col': right},
+                           {'row': middle_y, 'col': left},
+                           {'row': middle_y, 'col': right},
+                           {'row': bottom, 'col': left},
+                           {'row': bottom, 'col': middle_x},
+                           {'row': bottom, 'col': right}]
         logging.debug(f'neighborhood: {neighbor_coords}')
         count = 0
         for loc in neighbor_coords:
