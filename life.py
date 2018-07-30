@@ -1,4 +1,5 @@
 import logging
+import pygame
 from random import random
 
 
@@ -103,3 +104,26 @@ class Cell:
             print('O', end='')
         else:
             print(' ', end='')
+
+
+class Screen:
+    def __init__(self, grid, cell_size):
+        '''the width and height params are grid cells, not pixels'''
+        self.grid = grid
+        self.cell_size = cell_size
+        self.res_width = grid.width * cell_size
+        self.res_height = grid.height * cell_size
+        self.size = (self.res_width, self.res_height)
+        self.screen = pygame.display.set_mode(self.size)
+
+    def draw(self):
+        size = (self.cell_size, self.cell_size)
+        for y, row in enumerate(self.grid.grid):
+            for x, cell in enumerate(row):
+                coords = (x*self.cell_size, y*self.cell_size)
+                if cell.state is Cell.alive:
+                    color = pygame.Color('white')
+                else:
+                    color = pygame.Color('black')
+                self.screen.fill(color, rect=pygame.Rect(coords, size))
+        pygame.display.update()
