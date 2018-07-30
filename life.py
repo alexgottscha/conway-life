@@ -78,12 +78,6 @@ class Cell:
         print((f"| y:{self.coords['y']} x:{self.coords['x']} "
                f"a:{self.state} n:{self.count_neighbors()}"), end='')
 
-    def print(self):
-        if self.state is Cell.alive:
-            print('O', end='')
-        else:
-            print(' ', end='')
-
     def count_neighbors(self):
         top = self.coords['y'] - 1
         middle_y = self.coords['y']
@@ -106,3 +100,9 @@ class Cell:
                     self.grid.get_cell(loc).state is Cell.alive:
                 count += 1
         return count
+
+    def print(self):
+        if self.state is Cell.alive:
+            print('O', end='')
+        else:
+            print(' ', end='')
