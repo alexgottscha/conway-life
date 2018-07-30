@@ -111,8 +111,8 @@ class Screen:
         '''the width and height params are grid cells, not pixels'''
         self.grid = grid
         self.cell_size = cell_size
-        self.res_width = grid.width * cell_size
-        self.res_height = grid.height * cell_size
+        self.res_width = grid.columns * cell_size
+        self.res_height = grid.rows * cell_size
         self.size = (self.res_width, self.res_height)
         self.screen = pygame.display.set_mode(self.size)
 
