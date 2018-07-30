@@ -74,25 +74,24 @@ class Cell:
                f"a:{self.state} n:{self.count_neighbors()}"), end='')
 
     def count_neighbors(self):
-        top = self.coords['row'] - 1
-        middle_y = self.coords['row']
-        bottom = self.coords['row'] + 1
-        left = self.coords['col'] - 1
-        middle_x = self.coords['col']
-        right = self.coords['col'] + 1
-        neighbor_coords = [{'row': top, 'col': left},
-                           {'row': top, 'col': middle_x},
-                           {'row': top, 'col': right},
-                           {'row': middle_y, 'col': left},
-                           {'row': middle_y, 'col': right},
-                           {'row': bottom, 'col': left},
-                           {'row': bottom, 'col': middle_x},
-                           {'row': bottom, 'col': right}]
-        logging.debug(f'neighborhood: {neighbor_coords}')
+        top_row = (self.coords['row'] - 1) % self.grid.rows
+        middle_row = self.coords['row']
+        bottom_row = (self.coords['row'] + 1) % self.grid.rows
+        left_col = (self.coords['col'] - 1) % self.grid.columns
+        middle_col = self.coords['col']
+        right_col = (self.coords['col'] + 1) % self.grid.columns
+        neighbors = [self.grid.grid[top_row][left_col],
+                      self.grid.grid[top_row][middle_col],
+                      self.grid.grid[top_row][right_col],
+                      self.grid.grid[middle_row][left_col],
+                      self.grid.grid[middle_row][right_col],
+                      self.grid.grid[bottom_row][left_col],
+                      self.grid.grid[bottom_row][middle_col],
+                      self.grid.grid[bottom_row][right_col]]
+        logging.debug(f'neighborhood: {neighbors}')
         count = 0
-        for loc in neighbor_coords:
-            if self.grid.get_cell(loc) is not None and \
-                    self.grid.get_cell(loc).state is Cell.alive:
+        for cell in neighbors:
+            if cell.state is Cell.alive:
                 count += 1
         return count
 
