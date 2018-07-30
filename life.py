@@ -4,11 +4,11 @@ from random import random
 
 
 class Grid:
-    def __init__(self, width, height, populate=('random', 0.25), torus=True,
+    def __init__(self, columns, rows, populate=('random', 0.25), torus=True,
                  graphics=False, wsize={'x': 1280, 'y': 800}):
         self.torus = torus
-        self.width = width
-        self.height = height
+        self.columns = columns
+        self.rows = rows
         if populate[0] == 'random':
             self.grid = self.fill_grid_random(fill=populate[1])
         else:
@@ -18,17 +18,17 @@ class Grid:
         logging.debug('filling grid randomly')
         return [[Cell(True, {'x': x, 'y': y}, self) if random() < fill else
                  Cell(False, {'x': x, 'y': y}, self)
-                 for x in range(self.width)] for y in range(self.height)]
+                 for x in range(self.columns)] for y in range(self.rows)]
 
     def get_cell(self, coords):
         logging.debug(f'asked for cell at {coords}')
         if not self.torus:
-            if coords['x'] < 0 or coords['x'] > (self.width + 1) or \
-                    coords['y'] < 0 or coords['y'] > (self.height + 1):
+            if coords['x'] < 0 or coords['x'] > (self.columns + 1) or \
+                    coords['y'] < 0 or coords['y'] > (self.rows + 1):
                 logging.debug('coords exceeded boundaries on non-torus grid')
                 return None
 
-        return self.grid[coords['y'] % self.height][coords['x'] % self.width]
+        return self.grid[coords['y'] % self.rows][coords['x'] % self.columns]
 
     def print(self, debug=False):
         for row in self.grid:
