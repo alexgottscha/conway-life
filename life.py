@@ -1,9 +1,11 @@
 import logging
+import pyglet
 from random import random
 
 
 class Grid:
-    def __init__(self, width, height, populate=('random', 0.25), torus=True):
+    def __init__(self, width, height, populate=('random', 0.25), torus=True,
+                 graphics=False, wsize={'x': 1280, 'y': 800}):
         self.torus = torus
         self.width = width
         self.height = height
@@ -11,6 +13,36 @@ class Grid:
             self.grid = self.fill_grid_random(fill=populate[1])
         else:
             raise ValueError('populate parameter only supports "random"')
+        self.pyglet_enabled = graphics
+        if self.pyglet_enabled is True:
+            self.window = pyglet.window.Window(width=wsize['x'],
+                                               height=wsize['y'],
+                                               resizable=False)
+
+    def fill_grid_random(self, fill=0.25):
+        logging.debug('filling grid randomly')
+        return [[Cell(True, {'x': x, 'y': y}, self) if random() < fill else
+                 Cell(False, {'x': x, 'y': y}, self)
+                 for x in range(self.width)] for y in range(self.height)]
+
+    def get_cell(self, coords):
+        logging.debug(f'asked for cell at {coords}')
+        if not self.torus:
+            if coords['x'] < 0 or coords['x'] > (self.width + 1) or \
+                    coords['y'] < 0 or coords['y'] > (self.height + 1):
+                logging.debug('coords exceeded boundaries on non-torus grid')
+                return None
+
+        return self.grid[coords['y'] % self.height][coords['x'] % self.width]
+
+    def print(self, debug=False):
+        for row in self.grid:
+            for cell in row:
+                if debug:
+                    cell._debug_print()
+                else:
+                    cell.print()
+            print()
 
     def update(self):
         for row in self.grid:
@@ -31,31 +63,6 @@ class Grid:
                 cell.state = cell.next_state
                 cell.next_state = None
 
-    def get_cell(self, coords):
-        logging.debug(f'asked for cell at {coords}')
-        if not self.torus:
-            if coords['x'] < 0 or coords['x'] > (self.width + 1) or \
-                    coords['y'] < 0 or coords['y'] > (self.height + 1):
-                logging.debug('coords exceeded boundaries on non-torus grid')
-                return None
-
-        return self.grid[coords['y'] % self.height][coords['x'] % self.width]
-
-    def fill_grid_random(self, fill=0.25):
-        logging.debug('filling grid randomly')
-        return [[Cell(True, {'x': x, 'y': y}, self) if random() < fill else
-                 Cell(False, {'x': x, 'y': y}, self)
-                 for x in range(self.width)] for y in range(self.height)]
-
-    def print(self, debug=False):
-        for row in self.grid:
-            for cell in row:
-                if debug:
-                    cell._debug_print()
-                else:
-                    cell.print()
-            print()
-
 
 class Cell:
     alive = True
@@ -66,9 +73,6 @@ class Cell:
         self.coords = coords
         self.grid = grid
         self.next_state = None
-
-    def __bool__(self):
-        return self.state
 
     def _debug_print(self):
         print((f"| y:{self.coords['y']} x:{self.coords['x']} "
