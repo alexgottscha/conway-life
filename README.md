@@ -23,6 +23,11 @@ grid.print()
 [etc]
 ```
 
+## TODO
+### Multiprocessing (see branch)
+Basic idea is to split the grid into N sections where N is the number of processes.  Initial implentation can be just two or four sections, that will catch 95% of use cases.  Each section will need to have overlap with its adjacent sections, in order to be able to count neighbors for cells on the edges of the secton.  Thinking about it, there are two possible ways of doing this.
+The first way would be to literally create N new sections that implement Grid.  The update method would have to be updated to ignore the edge rows, as they'd be included as overlap.  The second way would be to put the multiprocessing into the update() function, and have each process' loop iterate over its section.
+
 ## Contributing
 
 Forks and pull requests are always welcome!
