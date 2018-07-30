@@ -1,5 +1,4 @@
 import logging
-import pyglet
 from random import random
 
 
@@ -13,11 +12,6 @@ class Grid:
             self.grid = self.fill_grid_random(fill=populate[1])
         else:
             raise ValueError('populate parameter only supports "random"')
-        self.pyglet_enabled = graphics
-        if self.pyglet_enabled is True:
-            self.window = pyglet.window.Window(width=wsize['x'],
-                                               height=wsize['y'],
-                                               resizable=False)
 
     def fill_grid_random(self, fill=0.25):
         logging.debug('filling grid randomly')
@@ -100,6 +94,9 @@ class Cell:
                     self.grid.get_cell(loc).state is Cell.alive:
                 count += 1
         return count
+
+    def draw(self):
+        pass
 
     def print(self):
         if self.state is Cell.alive:
