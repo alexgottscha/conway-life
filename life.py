@@ -63,15 +63,15 @@ class Grid:
             raise ValueError("We currently only support 1, 2, or 4 sections")
         rects = []
         y_min = 0
-        y_mid = int(self.height / 2)
-        y_max = self.height - 1
+        y_mid = int(self.rows / 2)
+        y_max = self.rows
         x_min = 0
-        x_mid = int(self.width / 2)
-        x_max = self.width - 1
+        x_mid = int(self.columns / 2)
+        x_max = self.columns
         if section_count == 1:
             rects.append((y_min, y_max, x_min, x_max))
         elif section_count == 2:
-            if self.width >= self.height:  # vertical split
+            if self.columns >= self.rows:  # vertical split
                 rects.append((y_min, y_max, x_min, x_mid))
                 rects.append((y_min, y_max, x_mid, x_max))
             else:
