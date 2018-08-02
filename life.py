@@ -87,7 +87,8 @@ class Grid:
     def repopulate(self):
         for row in self.grid:
             for cell in row:
-                cell.state = cell.next_state
+                if cell.next_state is not None:
+                    cell.state = cell.next_state
                 cell.next_state = None
 
 
