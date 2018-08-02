@@ -1,5 +1,6 @@
 import logging
 import pygame
+from multiprocessing import Process
 from random import random
 
 
@@ -12,6 +13,7 @@ class Grid:
             self.grid = self.fill_grid_random(fill=populate[1])
         else:
             raise ValueError('populate parameter only supports "random"')
+        self.section_rects = []
 
     def fill_grid_random(self, fill=0.25):
         logging.debug('filling grid randomly')
@@ -39,9 +41,10 @@ class Grid:
                     cell.print()
             print()
 
-    def update(self):
-        for row in self.grid:
-            for cell in row:
+    def update(self, rect):
+        y_min, y_max, x_min, x_max = rect
+        for row in self.grid[y_min:y_max]:
+            for cell in row[x_min:x_max]:
                 nn = cell.count_neighbors()
                 if cell.state is Cell.alive:
                     if nn < 2 or nn > 3:
@@ -53,6 +56,35 @@ class Grid:
                         cell.next_state = Cell.alive
                     else:
                         cell.next_state = Cell.dead
+
+    def split_grid(self, section_count=1):
+        '''Return list of (y_min, y_max, x_min, x_max) rectangles'''
+        if section_count not in [1, 2, 4]:
+            raise ValueError("We currently only support 1, 2, or 4 sections")
+        rects = []
+        y_min = 0
+        y_mid = int(self.height / 2)
+        y_max = self.height - 1
+        x_min = 0
+        x_mid = int(self.width / 2)
+        x_max = self.width - 1
+        if section_count == 1:
+            rects.append((y_min, y_max, x_min, x_max))
+        elif section_count == 2:
+            if self.width >= self.height:  # vertical split
+                rects.append((y_min, y_max, x_min, x_mid))
+                rects.append((y_min, y_max, x_mid, x_max))
+            else:
+                rects.append((y_min, y_mid, x_min, x_max))
+                rects.append((y_mid, y_max, x_min, x_max))
+        elif section_count == 4:
+            rects.append((y_min, y_mid, x_min, x_mid))  # top left
+            rects.append((y_mid, y_max, x_min, x_mid))  # bottom left
+            rects.append((y_min, y_mid, x_mid, x_max))  # top right
+            rects.append((y_mid, y_max, x_mid, x_max))  # bottom right
+        return rects
+
+    def repopulate(self):
         for row in self.grid:
             for cell in row:
                 cell.state = cell.next_state
@@ -81,13 +113,13 @@ class Cell:
         middle_col = self.coords['col']
         right_col = (self.coords['col'] + 1) % self.grid.columns
         neighbors = [self.grid.grid[top_row][left_col],
-                      self.grid.grid[top_row][middle_col],
-                      self.grid.grid[top_row][right_col],
-                      self.grid.grid[middle_row][left_col],
-                      self.grid.grid[middle_row][right_col],
-                      self.grid.grid[bottom_row][left_col],
-                      self.grid.grid[bottom_row][middle_col],
-                      self.grid.grid[bottom_row][right_col]]
+                     self.grid.grid[top_row][middle_col],
+                     self.grid.grid[top_row][right_col],
+                     self.grid.grid[middle_row][left_col],
+                     self.grid.grid[middle_row][right_col],
+                     self.grid.grid[bottom_row][left_col],
+                     self.grid.grid[bottom_row][middle_col],
+                     self.grid.grid[bottom_row][right_col]]
         logging.debug(f'neighborhood: {neighbors}')
         count = 0
         for cell in neighbors:
