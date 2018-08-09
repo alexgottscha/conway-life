@@ -1,11 +1,12 @@
 import logging
 import pygame
-from multiprocessing import Process
+from pathos.multiprocessing import ProcessingPool
 from random import random
 
 
 class Grid:
-    def __init__(self, columns, rows, populate=('random', 0.25), torus=True):
+    def __init__(self, columns, rows, populate=('random', 0.25), processes=1,
+                 torus=True):
         self.torus = torus
         self.columns = columns
         self.rows = rows
@@ -13,7 +14,8 @@ class Grid:
             self.grid = self.fill_grid_random(fill=populate[1])
         else:
             raise ValueError('populate parameter only supports "random"')
-        self.section_rects = []
+        self.grid_sections = []
+        self.processes = processes
 
     def fill_grid_random(self, fill=0.25):
         logging.debug('filling grid randomly')
@@ -21,16 +23,6 @@ class Grid:
                  if random() < fill else
                  Cell(Cell.dead, {'col': col, 'row': row}, self)
                  for col in range(self.columns)] for row in range(self.rows)]
-
-    def get_cell(self, coords):
-        logging.debug(f'asked for cell at {coords}')
-        if not self.torus:
-            if coords['col'] < 0 or coords['col'] > (self.columns + 1) or \
-                    coords['row'] < 0 or coords['row'] > (self.rows + 1):
-                logging.debug('coords exceeded boundaries on non-torus grid')
-                return None
-
-        return self.grid[coords['row'] % self.rows][coords['col'] % self.columns]
 
     def print(self, debug=False):
         for row in self.grid:
@@ -41,8 +33,8 @@ class Grid:
                     cell.print()
             print()
 
-    def update(self, rect):
-        y_min, y_max, x_min, x_max = rect
+    def update_section(self, section):
+        y_min, y_max, x_min, x_max = section
         for row in self.grid[y_min:y_max]:
             for cell in row[x_min:x_max]:
                 nn = cell.count_neighbors()
@@ -57,32 +49,37 @@ class Grid:
                     else:
                         cell.next_state = Cell.dead
 
-    def split_grid(self, section_count=1):
+    def update_mp(self):
+        results = ProcessingPool.map(self.update_section, self.grid_sections)
+
+    def split_grid(self):
         '''Return list of (y_min, y_max, x_min, x_max) rectangles'''
-        if section_count not in [1, 2, 4]:
+        if self.processes not in [1, 2, 4]:
             raise ValueError("We currently only support 1, 2, or 4 sections")
-        rects = []
         y_min = 0
         y_mid = int(self.rows / 2)
         y_max = self.rows
         x_min = 0
         x_mid = int(self.columns / 2)
         x_max = self.columns
-        if section_count == 1:
-            rects.append((y_min, y_max, x_min, x_max))
-        elif section_count == 2:
+        if self.processes == 1:
+            self.grid_sections.append((y_min, y_max, x_min, x_max))
+        elif self.processes == 2:
             if self.columns >= self.rows:  # vertical split
-                rects.append((y_min, y_max, x_min, x_mid))
-                rects.append((y_min, y_max, x_mid, x_max))
+                self.grid_sections.append((y_min, y_max, x_min, x_mid))
+                self.grid_sections.append((y_min, y_max, x_mid, x_max))
             else:
-                rects.append((y_min, y_mid, x_min, x_max))
-                rects.append((y_mid, y_max, x_min, x_max))
-        elif section_count == 4:
-            rects.append((y_min, y_mid, x_min, x_mid))  # top left
-            rects.append((y_mid, y_max, x_min, x_mid))  # bottom left
-            rects.append((y_min, y_mid, x_mid, x_max))  # top right
-            rects.append((y_mid, y_max, x_mid, x_max))  # bottom right
-        return rects
+                self.grid_sections.append((y_min, y_mid, x_min, x_max))
+                self.grid_sections.append((y_mid, y_max, x_min, x_max))
+        elif self.processes == 4:
+            # top left
+            self.grid_sections.append((y_min, y_mid, x_min, x_mid))
+            # bottom left
+            self.grid_sections.append((y_mid, y_max, x_min, x_mid))
+            # top right
+            self.grid_sections.append((y_min, y_mid, x_mid, x_max))
+            # bottom right
+            self.grid_sections.append((y_mid, y_max, x_mid, x_max))
 
     def repopulate(self):
         for row in self.grid:
