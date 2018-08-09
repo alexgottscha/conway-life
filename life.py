@@ -4,14 +4,11 @@ from random import random
 
 
 class Grid:
-    def __init__(self, columns, rows, populate=('random', 0.25), torus=True):
+    def __init__(self, columns, rows, populate=0.25, torus=True):
         self.torus = torus
         self.columns = columns
         self.rows = rows
-        if populate[0] == 'random':
-            self.grid = self.fill_grid_random(fill=populate[1])
-        else:
-            raise ValueError('populate parameter only supports "random"')
+        self.grid = self.fill_grid_random(fill=populate)
 
     def fill_grid_random(self, fill=0.25):
         logging.debug('filling grid randomly')
@@ -28,7 +25,8 @@ class Grid:
                 logging.debug('coords exceeded boundaries on non-torus grid')
                 return None
 
-        return self.grid[coords['row'] % self.rows][coords['col'] % self.columns]
+        return self.grid[
+            coords['row'] % self.rows][coords['col'] % self.columns]
 
     def print(self, debug=False):
         for row in self.grid:
@@ -81,13 +79,13 @@ class Cell:
         middle_col = self.coords['col']
         right_col = (self.coords['col'] + 1) % self.grid.columns
         neighbors = [self.grid.grid[top_row][left_col],
-                      self.grid.grid[top_row][middle_col],
-                      self.grid.grid[top_row][right_col],
-                      self.grid.grid[middle_row][left_col],
-                      self.grid.grid[middle_row][right_col],
-                      self.grid.grid[bottom_row][left_col],
-                      self.grid.grid[bottom_row][middle_col],
-                      self.grid.grid[bottom_row][right_col]]
+                     self.grid.grid[top_row][middle_col],
+                     self.grid.grid[top_row][right_col],
+                     self.grid.grid[middle_row][left_col],
+                     self.grid.grid[middle_row][right_col],
+                     self.grid.grid[bottom_row][left_col],
+                     self.grid.grid[bottom_row][middle_col],
+                     self.grid.grid[bottom_row][right_col]]
         logging.debug(f'neighborhood: {neighbors}')
         count = 0
         for cell in neighbors:
