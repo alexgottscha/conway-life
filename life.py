@@ -14,8 +14,7 @@ class Grid:
             self.grid = self.fill_grid_random(fill=populate[1])
         else:
             raise ValueError('populate parameter only supports "random"')
-        self.grid_sections = []
-        self.processes = processes
+        self.sections = self.split_grid(processes)
 
     def fill_grid_random(self, fill=0.25):
         logging.debug('filling grid randomly')
@@ -50,36 +49,38 @@ class Grid:
                         cell.next_state = Cell.dead
 
     def update_mp(self):
-        results = ProcessingPool.map(self.update_section, self.grid_sections)
+        results = ProcessingPool.map(self.update_section, self.sections)
 
-    def split_grid(self):
+    def split_grid(self, processes):
         '''Return list of (y_min, y_max, x_min, x_max) rectangles'''
-        if self.processes not in [1, 2, 4]:
+        if processes not in [1, 2, 4]:
             raise ValueError("We currently only support 1, 2, or 4 sections")
+        sections = []
         y_min = 0
         y_mid = int(self.rows / 2)
         y_max = self.rows
         x_min = 0
         x_mid = int(self.columns / 2)
         x_max = self.columns
-        if self.processes == 1:
-            self.grid_sections.append((y_min, y_max, x_min, x_max))
-        elif self.processes == 2:
+        if processes == 1:
+            sections.append((y_min, y_max, x_min, x_max))
+        elif processes == 2:
             if self.columns >= self.rows:  # vertical split
-                self.grid_sections.append((y_min, y_max, x_min, x_mid))
-                self.grid_sections.append((y_min, y_max, x_mid, x_max))
+                sections.append((y_min, y_max, x_min, x_mid))
+                sections.append((y_min, y_max, x_mid, x_max))
             else:
-                self.grid_sections.append((y_min, y_mid, x_min, x_max))
-                self.grid_sections.append((y_mid, y_max, x_min, x_max))
-        elif self.processes == 4:
+                sections.append((y_min, y_mid, x_min, x_max))
+                sections.append((y_mid, y_max, x_min, x_max))
+        elif processes == 4:
             # top left
-            self.grid_sections.append((y_min, y_mid, x_min, x_mid))
+            sections.append((y_min, y_mid, x_min, x_mid))
             # bottom left
-            self.grid_sections.append((y_mid, y_max, x_min, x_mid))
+            sections.append((y_mid, y_max, x_min, x_mid))
             # top right
-            self.grid_sections.append((y_min, y_mid, x_mid, x_max))
+            sections.append((y_min, y_mid, x_mid, x_max))
             # bottom right
-            self.grid_sections.append((y_mid, y_max, x_mid, x_max))
+            sections.append((y_mid, y_max, x_mid, x_max))
+        return sections
 
     def repopulate(self):
         for row in self.grid:
